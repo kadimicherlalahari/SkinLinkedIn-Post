@@ -1,0 +1,15 @@
+{
+  "name": "linkedin-post-generator",
+  "version": "1.0.0",
+  "description": "Telegram bot that turns rough ideas into LinkedIn posts in an existing voice skill, using Gemini.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=21.7"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "generate": "node scripts/generate.js",
+    "test": "node --test test/"
+  }
+}

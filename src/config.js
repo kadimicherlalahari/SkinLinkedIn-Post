@@ -14,9 +14,12 @@ function required(name) {
 }
 
 export function loadConfig({ needTelegram = true } = {}) {
+  const geminiModel = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-pro';
   return {
     geminiApiKey: required('GEMINI_API_KEY'),
-    geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-pro',
+    geminiModel,
+    // Model for the evaluation stages (runs on every note - pick a cheap, fast one).
+    evalModel: process.env.GEMINI_EVAL_MODEL?.trim() || geminiModel,
     geminiTemperature: Number(process.env.GEMINI_TEMPERATURE ?? 0.7),
     telegramToken: needTelegram ? required('TELEGRAM_BOT_TOKEN') : null,
     allowedChatId: process.env.TELEGRAM_CHAT_ID?.trim() || null,

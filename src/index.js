@@ -2,6 +2,7 @@ import { loadConfig } from './config.js';
 import { loadVoiceSkill } from './voiceSkill.js';
 import { createTelegram } from './telegram.js';
 import { handleUpdate } from './bot.js';
+import { createStore } from './eval/store.js';
 import { log } from './log.js';
 
 async function main() {
@@ -10,10 +11,11 @@ async function main() {
   // Fail fast at startup if the voice skill is missing, rather than on the first message.
   const skill = loadVoiceSkill(config.voiceSkillPath);
   log.info(`Voice skill loaded: ${config.voiceSkillPath} (${skill.length} chars)`);
-  log.info(`Gemini model: ${config.geminiModel}`);
+  log.info(`Gemini model: ${config.geminiModel} (evaluation: ${config.evalModel})`);
   if (!config.allowedChatId) log.warn('TELEGRAM_CHAT_ID not set - the bot will answer ANY chat. Set it to restrict access.');
 
   const telegram = createTelegram(config.telegramToken);
+  const store = createStore();
   const me = await telegram.getMe();
   log.info(`Connected to Telegram as @${me.username}. Waiting for ideas...`);
 
@@ -39,7 +41,7 @@ async function main() {
     for (const update of updates) {
       offset = update.update_id + 1;
       try {
-        await handleUpdate(update, { telegram, config });
+        await handleUpdate(update, { telegram, config, store });
       } catch (err) {
         // Typically a failed sendMessage; log and move on so one bad update can't stall the bot.
         log.error(`Failed handling update ${update.update_id}:`, err);

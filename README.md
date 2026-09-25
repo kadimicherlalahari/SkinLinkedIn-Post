@@ -25,7 +25,41 @@ To test without Telegram:
 npm run generate -- "Most companies don't have a hiring problem. They have a problem explaining why someone should work there."
 ```
 
+To see only the note gate's verdict (JSON):
+
+```bash
+npm run gate -- "People keep asking about sunscreen."
+```
+
 `npm test` runs offline tests. Telegram and Gemini are mocked in them.
+
+## Evaluation layer
+
+Every note goes through two checks.
+
+**Stage 1, note gate** (`src/eval/gate.js`, prompt in `prompts/note-gate.md`). Runs before generation. It scores the raw note on topic fit, concrete anchor, claim safety, single takeaway and newsworthiness, then routes it:
+
+- **PROCEED** (7/10 or above): the post is generated. The gate's pillar, anchor, takeaway and flagged claims are passed to the generator.
+- **BORDERLINE** (5-6.9/10): the bot sends the score, the two weakest metrics and a suggestion, with **Generate anyway** and **Skip** buttons.
+- **REJECT** (below 5/10, or topic confidence below 5/10): the bot sends the score, the reason and a suggestion, with a **Generate anyway** button.
+
+**Stage 2, post quality check** (`src/eval/quality.js`, prompt in `prompts/post-quality.md`). Runs on the draft. Code checks for emojis, hashtags, `!`, lists, fluff words and engagement bait. The model judges the opening, the closing, false authority and claims. If the draft breaks any voice rules, it is regenerated once with the violations listed, and the better-scoring version is sent. The post arrives as its own message, followed by a CONTENT SCORE card showing: the score out of 10, pillar, angle, overlap with past posts, each note-gate metric, the opening/closing/voice/claims checks, deductions and flags. Every sent post is saved to `data/posts.jsonl` as `post_001`, `post_002`, and so on. New drafts are compared against the last 30 (`stage2.overlapLookback`).
+
+If either stage errors, the bot falls back to the previous behaviour and logs the error. A note is never blocked because the evaluation failed.
+
+**Tuning.** Scores are shown to Meera out of 10, but the config and log use 0-100 (so 70 in the config is 7/10 on the card). All weights, thresholds, deductions, the fluff-word and engagement-bait lists, and the pillar definitions are in `config/evaluation.json`. It is re-read on every note, so no restart is needed. Every evaluation (note, scores, decision, overrides, quality score) is appended to `data/evaluations.jsonl`, and events for the same note share an `id`. `data/` is gitignored.
+
+**News (Google News RSS).** For each note, a cheap model call picks 1-3 search words, with a broader fallback term. The bot then runs one India-edition search limited to the last 30 days (`news` in the config). Only publishers on `news.allowedSources` are kept; others are dropped, so press releases, brand blogs and beauty magazines never count. RSS provides headlines only, with no article text.
+
+- **Newsworthiness:** the gate sees the headlines. Only coverage it marks relevant can lift newsworthiness above 75, and that coverage sets it to at least `newsworthinessWithCoverageMin`. With no relevant coverage, it can't go above 75.
+- **Articles for the writer:** the top 3 relevant articles are stored with the note and passed to the writer. The writer may credit them by outlet, may not go beyond what the headline says, and never adds links.
+- **Claim checks:** each doubtful external claim, in Stage 1 and Stage 2, gets its own search, and one model call judges it conservatively. A clearly supporting headline removes the −10. A contradicting one keeps the −10 and names the source. Internal Skinstinct claims are never checked against news.
+- **Sources:** everything the bot relied on is listed under `Sources:` on the card, as tappable headlines.
+- **Failures:** if RSS fails or finds nothing, newsworthiness stays at the default and the note continues.
+
+**Credible sources only.** The writer may only state facts that come from Meera's note, the voice skill, or the allow-listed articles found for the note. Reasoning, opinion and advice are fine, but facts from the model's general knowledge are not. Stage 2 traces every factual claim in the draft to one of those three sources. The checker must quote the exact supporting words, and code confirms those words really appear in the note, voice skill or headline. A claim with no source is searched for in allow-listed news. If nothing supports it, it's marked "unsourced": a voice violation (−1) that triggers the one rewrite. The card shows this as `Sourcing ✓` or `Sourcing N unsourced`.
+
+**Product data.** Add Skinstinct's specs (actives, percentages, pH, stability, CoA results) as `config/skinstinct-product-data.json`, in any readable format. Until that file exists, internal claims are flagged `NEEDS_CONFIRMATION` (−5). Once it exists, they are checked against it: a claim that contradicts it or can't be checked costs −20.
 
 ## How it works
 
@@ -42,6 +76,7 @@ The voice skill is read fresh on every message, so edits to `SKILL.md` take effe
 | `TELEGRAM_CHAT_ID` | empty (any chat) | Restricts the bot to your chat |
 | `GEMINI_MODEL` | `gemini-2.5-pro` | Any Gemini model id |
 | `GEMINI_TEMPERATURE` | `0.7` | |
+| `GEMINI_EVAL_MODEL` | same as `GEMINI_MODEL` | Model for both evaluation stages |
 | `VOICE_SKILL_PATH` | `skills/meera-pillai-voice/SKILL.md` | |
 
 Secrets are only read from the environment. They are scrubbed from logs, and the Gemini key is sent in a header, never in a URL. `.env` is gitignored.

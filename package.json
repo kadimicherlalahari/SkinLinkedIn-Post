@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "generate": "node scripts/generate.js",
-    "test": "node --test test/"
+    "test": "node --test test/",
+    "gate": "node scripts/generate.js --gate-only"
   }
 }

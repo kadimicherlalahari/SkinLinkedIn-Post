@@ -1,0 +1,73 @@
+{
+  "enabled": true,
+  "evalTemperature": 0.2,
+  "productDataPath": "config/skinstinct-product-data.json",
+
+  "pillars": [
+    { "name": "Ingredient Deep-Dive", "description": "What a specific active (niacinamide, Vitamin C, peptides, retinoids, ceramides, sunscreen filters...) actually does, at what concentration and pH, and what the evidence supports." },
+    { "name": "Formulation Science", "description": "How the base, pH, stability, penetration, preservation and batch consistency determine whether a product works. Lab, manufacturing and stability-testing detail." },
+    { "name": "India-Specific Context", "description": "Humidity, heat, Indian UV levels, Indian cities, Indian labelling rules, contract manufacturers running formulations designed for other climates." },
+    { "name": "Industry Transparency", "description": "The gap between label claims and formulation reality; CoAs, documentation, supplier-run vs independent testing, how the industry works behind the scenes. Critiques systems, not named brands." },
+    { "name": "Consumer Education", "description": "Practical, mechanism-first guidance a reader can act on: what to check, what to ask a brand, how to use a product properly (e.g. sunscreen quantity, layering actives)." },
+    { "name": "Brand Philosophy", "description": "Why Skinstinct makes the choices it does: publishing data, not overclaiming, holding itself to the same standard, choices vs beliefs." },
+    { "name": "Clean Beauty Claims", "description": "Evaluating 'clean', 'natural', 'toxin-free', paraben/fragrance fears: what the movement gets right and where the evidence doesn't support it." },
+    { "name": "Founder Story", "description": "Meera's professional history (pharma formulation, the stability review that led to founding Skinstinct), professional mistakes and decisions. Professional, never private." }
+  ],
+  "offTopicExamples": "makeup trends, product hauls, generic skincare routines, influencer or celebrity recommendations, 'glass skin' / 'glow' trends, lifestyle, fashion",
+
+  "news": {
+    "enabled": true,
+    "days": 30,
+    "edition": { "hl": "en-IN", "gl": "IN", "ceid": "IN:en" },
+    "maxResults": 10,
+    "maxArticles": 3,
+    "maxClaimChecks": 5,
+    "timeoutMs": 8000,
+    "allowedSources": [
+      "cdsco.gov.in", "pib.gov.in", "mohfw.gov.in", "icmr.gov.in", "fda.gov", "nih.gov", "who.int", "europa.eu", "aad.org",
+      "nature.com", "thelancet.com", "bmj.com", "jamanetwork.com", "nejm.org", "sciencedirect.com", "springer.com", "wiley.com",
+      "thehindu.com", "thehindubusinessline.com", "indianexpress.com", "hindustantimes.com", "timesofindia.indiatimes.com",
+      "economictimes.indiatimes.com", "economictimes.com", "livemint.com", "business-standard.com", "ndtv.com", "indiatoday.in",
+      "newindianexpress.com", "moneycontrol.com", "theprint.in", "scroll.in",
+      "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk", "theguardian.com", "nytimes.com", "washingtonpost.com", "ft.com",
+      "bloomberg.com", "cnbc.com", "nbcnews.com",
+      "medicaldialogues.in", "statnews.com", "cosmeticsdesign-asia.com", "cosmeticsdesign.com", "cosmeticsbusiness.com"
+    ]
+  },
+
+  "stage1": {
+    "weights": { "topic_fit": 0.25, "concrete_anchor": 0.25, "claim_safety": 0.25, "single_takeaway": 0.15, "newsworthiness": 0.10 },
+    "thresholds": { "proceed": 70, "borderline": 50, "minTopicConfidence": 50 },
+    "newsworthinessDefault": 75,
+    "newsworthinessWithCoverageMin": 80,
+    "pendingExpiryDays": 7
+  },
+
+  "claims": {
+    "deductions": {
+      "internal_unverified": 20,
+      "internal_needs_confirmation": 5,
+      "external_doubtful": 10,
+      "external_established": 0
+    }
+  },
+
+  "stage2": {
+    "deductions": { "voiceViolation": 10, "weakOpening": 10, "weakClosing": 10 },
+    "maxRegenerations": 1,
+    "overlapLookback": 30,
+    "fluffWords": [
+      "game-changer", "game-changing", "game changer", "holy grail", "miracle", "glow up", "glow-up", "glass skin",
+      "must-have", "obsessed", "magic", "magical", "revolutionary", "breakthrough", "luxurious",
+      "indulgent", "pamper", "skin-loving", "elevate", "amazing", "incredible", "stunning", "flawless",
+      "transformative", "unlock", "unleash", "next-level", "clinically proven", "dermatologist approved",
+      "dermatologist-approved", "toxin-free", "chemical-free", "superfood", "cutting-edge", "world-class"
+    ],
+    "engagementBait": [
+      "let me know", "what do you think", "thoughts?", "agree?", "comment below", "drop a comment", "tag a friend",
+      "share your", "follow for more", "link in bio", "shop now", "here's the thing", "let that sink in",
+      "unpopular opinion", "hot take", "who else", "can you relate", "excited to announce", "i'm humbled",
+      "on this journey", "grateful for this community", "cheers,", "xoxo", "with love", "stay glowing"
+    ]
+  }
+}
